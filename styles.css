@@ -19,3 +19,10 @@ canvas {
     right: 0;
 
 }
+
+div {
+    border: 1px solid black;
+    /*background: black;*/
+    height: 100px;
+    width: 150px;
+}

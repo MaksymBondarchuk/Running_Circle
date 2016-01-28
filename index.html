@@ -4,9 +4,12 @@
     <meta charset="UTF-8">
     <title>Running circle :: Home</title>
     <link type="text/css" media="all" rel="stylesheet" href="styles.css"/>
-    <script type="text/javascript" src="scripts.js"></script>
+    <script type="text/javascript" src="scripts/scripts.js"></script>
+    <script src="scripts/jquery-2.2.0.js"></script>
 </head>
-<body>
-<canvas id="mainCanvas" width="1000" height="700" onmousedown="DrawSimpleCircle(event)"></canvas>
+<body onload="startSmallCircle()">
+<canvas id="mainCanvas" width="1000" height="700" onmousemove="DoStuff(event)" onmousedown="DrawSimpleCircle(event)"></canvas>
+<div id="divColor"></div>
+<div id="divTxt"></div>
 </body>
 </html>
