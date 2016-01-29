@@ -17,7 +17,8 @@ var smallCircleColor = 'red';
 var xS = 0;
 var yS = 0;
 var smallCircleInitialized = false;
-var rangeForLook = 5;
+var rangeForLook = 1;
+
 
 function DrawSimpleCircle(event) {
     var canvas = $('#mainCanvas')[0];
@@ -45,6 +46,7 @@ function DrawSimpleCircle(event) {
 
 }
 
+
 function DoStuff(event) {
     var canvas = $('#mainCanvas')[0];
     var mousePoint = getMousePos(canvas, event);
@@ -60,7 +62,11 @@ function DoStuff(event) {
 
     var divTxt = document.getElementById("divTxt");
     divTxt.innerHTML = clr;
+
+    var divCoord = document.getElementById("divCoord");
+    divCoord.innerHTML = mousePoint.X + "," + mousePoint.Y;
 }
+
 
 function getMousePos(canvas, event) {
     var rect = canvas.getBoundingClientRect();
@@ -75,33 +81,52 @@ function startSmallCircle() {
     setInterval(smallCircle, 100);
 }
 
+
 function smallCircle() {
     var canvas = document.getElementById('mainCanvas');
     var ctx = canvas.getContext("2d");
 
     if (wasSecondClick) {
+        var xSPrev = xS;
+        var ySPrev = yS;
+
         if (!smallCircleInitialized) {
             xS = x1;
             yS = y1 + radius;
             smallCircleInitialized = true;
         }
         else
-            for (var i = xS - smallCircleRadius - rangeForLook; i <= xS + smallCircleRadius + rangeForLook; i++)
+            for (var i = xS - smallCircleRadius - rangeForLook; i <= xS + smallCircleRadius + rangeForLook; i++) {
+                var newPointFound = false;
                 for (var j = yS - smallCircleRadius - rangeForLook; j <= yS + smallCircleRadius + rangeForLook; j++) {
                     //alert(getPixelColor(i, j));
                     //var cl = getPixelColor(i, j);
                     //var cb = 'black';
 
                     var clr = getPixelRGBA(i, j);
-                    if (clr.R == 0 && clr.G == 0 && clr.B == 0 && clr.A != 0) {
-                    //if (getPixelColor(i, j) == 'black') {
-                    //if (cl == 'black') {
+                    if (clr.R < 255 && clr.G == 0 && clr.B == 0 && clr.A != 0) {
+                        //if (getPixelColor(i, j) == 'black') {
+                        //if (cl == 'black') {
+                        //alert(i + ", " + j);
                         xS = i;
                         yS = j;
+                        newPointFound = true;
                         break;
                     }
                 }
+                if (newPointFound)
+                    break;
+            }
 
+        ctx.beginPath();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.arc(x1, y1, radius, 0, 2 * Math.PI);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(xSPrev, ySPrev, smallCircleRadius, 0, 2 * Math.PI);
+        ctx.fillStyle = smallCircleColor;
+        ctx.fill();
         ctx.beginPath();
         ctx.arc(xS, yS, smallCircleRadius, 0, 2 * Math.PI);
         ctx.fillStyle = smallCircleColor;
@@ -110,12 +135,14 @@ function smallCircle() {
     }
 }
 
+
 function getPixelColor(x, y) {
     var canvas = $('#mainCanvas')[0];
     var ctx = canvas.getContext("2d");
     var clr = ctx.getImageData(x, y, 1, 1).data;
     return "rgba(" + [clr[0], clr[1], clr[2], clr[3]].join(",") + ")";
 }
+
 
 function getPixelRGBA(x, y) {
     var canvas = $('#mainCanvas')[0];
