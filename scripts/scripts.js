@@ -10,7 +10,7 @@ var y1;
 var x2;
 var y2;
 var radius;
-var figureColor = 'black';
+var points = [];
 
 var smallCircleRadius = 5;
 var smallCircleColor = 'red';
@@ -22,7 +22,7 @@ var rangeForLook = 1;
 
 function DrawSimpleCircle(event) {
     var canvas = $('#mainCanvas')[0];
-    var ctx = canvas.getContext("2d");
+    //var ctx = canvas.getContext("2d");
     var mousePoint = getMousePos(canvas, event);
 
     if (!wasFirstClick) {
@@ -34,14 +34,47 @@ function DrawSimpleCircle(event) {
         x2 = mousePoint.X;
         y2 = mousePoint.Y;
 
-
-        ctx.beginPath();
-
+        //ctx.beginPath();
         radius = Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
-        ctx.arc(x1, y1, radius, 0, 2 * Math.PI);
-        ctx.stroke();
+        //ctx.arc(x1, y1, radius, 0, 2 * Math.PI);
+        //ctx.stroke();
+
+        points.push({X: x1 - radius, Y: y1 - radius});  // p0
+        points.push({X: x1 + radius, Y: y1 - radius});  // p1
+        points.push({X: x1 + radius, Y: y1 + radius});  // p2
+        points.push({X: x1 - radius, Y: y1 + radius});  // p3
+
+        drawFrame();
 
         wasSecondClick = true;
+    }
+    else {
+        var distances = [];
+        for (i in points)
+            distances.push(Math.sqrt(Math.pow(points[i].X - mousePoint.X, 2) + Math.pow(points[i].Y - mousePoint.Y, 2)))
+
+        var imin = 0;
+        for (var i = 1; i < distances.length; i++)
+            if (distances[i] < distances[imin])
+                imin = i;
+
+        var newPoint = {X: mousePoint.X, Y: mousePoint.Y};
+        if (imin == 0) {
+            if (distances[1] < distances[distances.length - 1])
+                points.splice(1, 0, newPoint);
+            else
+                points.splice(0, 0, newPoint);
+        }
+        else if (imin == distances.length - 1) {
+            if (distances[distances.length - 2] < distances[0])
+                points.splice(distances.length - 1, 0, newPoint);
+            else
+                points.splice(0, 0, newPoint);
+        }
+        else if (distances[imin - 1] < distances[imin + 1])
+            points.splice(imin, 0, newPoint);
+        else
+            points.splice(imin + 1, 0, newPoint);
     }
 
 }
@@ -78,7 +111,7 @@ function getMousePos(canvas, event) {
 
 
 function startSmallCircle() {
-    setInterval(smallCircle, 100);
+    setInterval(smallCircle, 50);
 }
 
 
@@ -96,6 +129,7 @@ function smallCircle() {
             smallCircleInitialized = true;
         }
         else
+        // Find new location to move
             for (var i = xS - smallCircleRadius - rangeForLook; i <= xS + smallCircleRadius + rangeForLook; i++) {
                 var newPointFound = false;
                 for (var j = yS - smallCircleRadius - rangeForLook; j <= yS + smallCircleRadius + rangeForLook; j++) {
@@ -118,10 +152,12 @@ function smallCircle() {
                     break;
             }
 
-        ctx.beginPath();
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.arc(x1, y1, radius, 0, 2 * Math.PI);
-        ctx.stroke();
+        clearCanvas();
+        drawFrame();
+        //ctx.beginPath();
+        ////ctx.clearRect(0, 0, canvas.width, canvas.height);
+        //ctx.arc(x1, y1, radius, 0, 2 * Math.PI);
+        //ctx.stroke();
 
         ctx.beginPath();
         ctx.arc(xSPrev, ySPrev, smallCircleRadius, 0, 2 * Math.PI);
@@ -154,4 +190,27 @@ function getPixelRGBA(x, y) {
         B: clr[2],
         A: clr[3]
     };
+}
+
+
+function clearCanvas() {
+    var canvas = document.getElementById('mainCanvas');
+    var ctx = canvas.getContext("2d");
+    ctx.beginPath();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.stroke();
+}
+
+
+function drawFrame() {
+    var canvas = document.getElementById('mainCanvas');
+    var ctx = canvas.getContext("2d");
+    ctx.beginPath();
+
+    ctx.moveTo(points[0].X, points[0].Y);
+    for (var i = 1; i < points.length; i++)
+        ctx.lineTo(points[i].X, points[i].Y);
+    ctx.lineTo(points[0].X, points[0].Y);
+
+    ctx.stroke();
 }
