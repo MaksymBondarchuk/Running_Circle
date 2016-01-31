@@ -14,15 +14,23 @@ var radius;
 var points = [];
 
 // For small circle
-var smallCircleRadius = 5;
+var smallCircleRadius = 7;
 var smallCircleColor = 'red';
 var xS = 0;
 var yS = 0;
 var smallCircleInitialized = false;
-var rangeForLook = 1;
+var rangeForLook = 3;
 //var rangeForRelocate = 100;
 
 var offsetBezier = 0.1;
+
+//class Polygon {
+//    constructor(height, width) {
+//        this.height = height;
+//        this.width = width;
+//    }
+//}
+
 
 
 // Click handler
@@ -61,7 +69,7 @@ function drawSimpleCircle(event) {
         // Just add new point
         var distances = [];
         for (i in points)
-            distances.push(Math.sqrt(Math.pow(points[i].X - mousePoint.X, 2) + Math.pow(points[i].Y - mousePoint.Y, 2)))
+            distances.push(Math.sqrt(Math.pow(points[i].X - mousePoint.X, 2) + Math.pow(points[i].Y - mousePoint.Y, 2)));
 
         var imin = 0;
         for (var i = 1; i < distances.length; i++)
@@ -90,18 +98,16 @@ function drawSimpleCircle(event) {
 }
 
 
-function doStuff(event) {
+// For testing
+function testFunction(event) {
     var canvas = $('#mainCanvas')[0];
     var mousePoint = getMousePos(canvas, event);
 
     var divColor = document.getElementById("divColor");
-
     var clr = getPixelColor(mousePoint.X, mousePoint.Y);
 
-
-    //divColor.style.backgroundColor = getPixelColor(mousePoint.X, mousePoint.Y);
+    // Show all needed information
     divColor.style.backgroundColor = clr;
-    //alert(clr);
 
     var divTxt = document.getElementById("divTxt");
     divTxt.innerHTML = clr;
@@ -111,6 +117,7 @@ function doStuff(event) {
 }
 
 
+// Returns mouse position on the canvas
 function getMousePos(canvas, event) {
     var rect = canvas.getBoundingClientRect();
     return {
@@ -120,22 +127,26 @@ function getMousePos(canvas, event) {
 }
 
 
+// Starts small circle "thread"
 function startSmallCircle() {
     setInterval(smallCircle, 100);
 }
 
 
+// Redraws the whole canvas
 function smallCircle() {
     var canvas = document.getElementById('mainCanvas');
     var ctx = canvas.getContext("2d");
     var divTest = document.getElementById('divTest');
 
+    // Draw small circle only if user selected initial frame
     if (wasSecondClick) {
         var xSPrev = xS;
         var ySPrev = yS;
 
+        // If function is called for the first time
         if (!smallCircleInitialized) {
-            xS = x1;
+            xS = x1 + radius;
             yS = y1 + radius;
             smallCircleInitialized = true;
         }
@@ -144,10 +155,6 @@ function smallCircle() {
             for (var i = xS - smallCircleRadius - rangeForLook; i <= xS + smallCircleRadius + rangeForLook; i++) {
                 var newPointFound = false;  // For break 2 loops
                 for (var j = yS - smallCircleRadius - rangeForLook; j <= yS + smallCircleRadius + rangeForLook; j++) {
-                    //alert(getPixelColor(i, j));
-                    //var cl = getPixelColor(i, j);
-                    //var cb = 'black';
-
                     var clr = getPixelRGBA(i, j);
                     if (clr.R < 255 && clr.G == 0 && clr.B == 0 && clr.A != 0) {
                         xS = i;
@@ -163,6 +170,7 @@ function smallCircle() {
             if (xS == xSPrev && yS == ySPrev) {
                 //alert("I lost");
 
+                // Go to the nearest point
                 var distances = [];
                 for (h in points)
                     distances.push(Math.pow(points[h].X - xS, 2) + Math.pow(points[h].Y - yS, 2));
@@ -196,6 +204,7 @@ function smallCircle() {
             }
         }
 
+        // Redraw everything
         clearCanvas();
         drawPoints();
         drawFrame();
@@ -212,6 +221,7 @@ function smallCircle() {
 }
 
 
+// Returns pixel's color as a string
 function getPixelColor(x, y) {
     var canvas = $('#mainCanvas')[0];
     var ctx = canvas.getContext("2d");
@@ -220,6 +230,7 @@ function getPixelColor(x, y) {
 }
 
 
+// Returns pixel's color as a struct
 function getPixelRGBA(x, y) {
     var canvas = $('#mainCanvas')[0];
     var ctx = canvas.getContext("2d");
@@ -233,6 +244,7 @@ function getPixelRGBA(x, y) {
 }
 
 
+// Clears canvas
 function clearCanvas() {
     var canvas = document.getElementById('mainCanvas');
     var ctx = canvas.getContext("2d");
@@ -242,6 +254,7 @@ function clearCanvas() {
 }
 
 
+// Draws frame for small circle to move
 function drawFrame() {
     var canvas = document.getElementById('mainCanvas');
     var ctx = canvas.getContext("2d");
@@ -265,31 +278,8 @@ function drawFrame() {
     //    ctx.bezierCurveTo(x1, y1, x1, y1, x1 + dx2 * offsetBezier, y1 + dy2 * offsetBezier);
     //}
 
-    //for (var i = 0; i < points.length; i += 2) {
-    //    var x0 = points[i].X;
-    //    var y0 = points[i].Y;
-    //    var x1 = points[(i + 1) % points.length].X;
-    //    var y1 = points[(i + 1) % points.length].Y;
-    //    var x2 = points[((i + 1) % points.length + 1) % points.length].X;
-    //    var y2 = points[((i + 1) % points.length + 1) % points.length].Y;
-    //    var x3 = points[((i + 1) % points.length + 2) % points.length].X;
-    //    var y3 = points[((i + 1) % points.length + 2) % points.length].Y;
-    //
-    //    var dx1 = x1 - x0;
-    //    var dy1 = y1 - y0;
-    //    var dx2 = x3 - x2;
-    //    var dy2 = y3 - y2;
-    //
-    //    ctx.moveTo(x0 - dx1 * offsetBezier, y0 - dy1 * offsetBezier);
-    //    ctx.lineTo(x1 + dx1 * offsetBezier, y1 + dy1 * offsetBezier);
-    //    //ctx.lineTo(x1 - dx1 * offsetBezier, y1 - dy1 * offsetBezier);
-    //    ctx.bezierCurveTo(x1 + dx1 * .5, y1 + dy1 * .5,
-    //        x2 - dx2 * .5, y2 - dy2 * .5,
-    //        x2 - dx2 * offsetBezier, y2 - dy2 * offsetBezier);
-    //    //ctx.lineTo(x3 + dx2 *offsetBezier, y3 + dy2 * offsetBezier);
-    //}
-
-    var dxes = [];
+    // Get all deltas
+    var deltas = [];
     for (var _i = 0; _i < points.length; _i++) {
         var _x0 = points[_i != 0 ? _i - 1 : points.length - 1].X;
         var _y0 = points[_i != 0 ? _i - 1 : points.length - 1].Y;
@@ -300,36 +290,38 @@ function drawFrame() {
 
         var r0 = Math.sqrt(Math.pow(_x1 - _x0, 2) + Math.pow(_y1 - _y0, 2));
         var r2 = Math.sqrt(Math.pow(_x1 - _x2, 2) + Math.pow(_y1 - _y2, 2));
-        dxes.push({X: _x2 - _x0, Y: _y2 - _y0, R2: r2, R0: r0});
+        deltas.push({X: _x2 - _x0, Y: _y2 - _y0, R2: r2, R0: r0});
     }
 
+    // Draw frame
     for (var i = 0; i < points.length; i++) {
-        var x0 = points[i != 0 ? i - 1 : points.length - 1].X;
-        var y0 = points[i != 0 ? i - 1 : points.length - 1].Y;
+        //var x0 = points[i != 0 ? i - 1 : points.length - 1].X;
+        //var y0 = points[i != 0 ? i - 1 : points.length - 1].Y;
         var x1 = points[i].X;
         var y1 = points[i].Y;
         var idxP1 = (i + 1) % points.length;    // index plus 1
         var x2 = points[idxP1].X;
         var y2 = points[idxP1].Y;
 
-        //alert("dx = " + dxes[i].X + ", dy = " + dxes[i].Y);
+        //alert("dx = " + deltas[i].X + ", dy = " + deltas[i].Y);
 
         // Page 3
-        var offset0 = dxes[i].R0 / (dxes[i].R0 + dxes[i].R2);
-        var offset2 = dxes[i].R2 / (dxes[i].R0 + dxes[i].R2);
-        var offset20 = dxes[idxP1].R0 / (dxes[idxP1].R0 + dxes[idxP1].R2);
+        var offset0 = deltas[i].R0 / (deltas[i].R0 + deltas[i].R2);
+        var offset2 = deltas[i].R2 / (deltas[i].R0 + deltas[i].R2);
+        var offset20 = deltas[idxP1].R0 / (deltas[idxP1].R0 + deltas[idxP1].R2);
 
-        ctx.moveTo(x1 - dxes[i].X * offsetBezier * offset0, y1 - dxes[i].Y * offsetBezier * offset0);
-        ctx.lineTo(x1 + dxes[i].X * offsetBezier * offset2, y1 + dxes[i].Y * offsetBezier * offset2);
-        ctx.bezierCurveTo(x1 + dxes[i].X * .5 * offset2, y1 + dxes[i].Y * .5 * offset2,
-            x2 - dxes[idxP1].X * .5 * offset20, y2 - dxes[idxP1].Y * .5 * offset20,
-            x2 - dxes[idxP1].X * offsetBezier * offset20, y2 - dxes[idxP1].Y * offsetBezier * offset20);
+        ctx.moveTo(x1 - deltas[i].X * offsetBezier * offset0, y1 - deltas[i].Y * offsetBezier * offset0);
+        ctx.lineTo(x1 + deltas[i].X * offsetBezier * offset2, y1 + deltas[i].Y * offsetBezier * offset2);
+        ctx.bezierCurveTo(x1 + deltas[i].X * .5 * offset2, y1 + deltas[i].Y * .5 * offset2,
+            x2 - deltas[idxP1].X * .5 * offset20, y2 - deltas[idxP1].Y * .5 * offset20,
+            x2 - deltas[idxP1].X * offsetBezier * offset20, y2 - deltas[idxP1].Y * offsetBezier * offset20);
     }
 
     ctx.stroke();
 }
 
 
+// Draws user's points
 function drawPoints() {
     var canvas = document.getElementById('mainCanvas');
     var ctx = canvas.getContext("2d");
