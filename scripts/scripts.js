@@ -3,6 +3,7 @@
  */
 
 
+// For frame
 var wasFirstClick = false;
 var wasSecondClick = false;
 var x1;
@@ -12,15 +13,19 @@ var y2;
 var radius;
 var points = [];
 
+// For small circle
 var smallCircleRadius = 5;
 var smallCircleColor = 'red';
 var xS = 0;
 var yS = 0;
 var smallCircleInitialized = false;
 var rangeForLook = 1;
+var rangeForRelocate = 100;
+
+var offsetBezier = 0.3;
 
 
-function DrawSimpleCircle(event) {
+function drawSimpleCircle(event) {
     var canvas = $('#mainCanvas')[0];
     //var ctx = canvas.getContext("2d");
     var mousePoint = getMousePos(canvas, event);
@@ -80,7 +85,7 @@ function DrawSimpleCircle(event) {
 }
 
 
-function DoStuff(event) {
+function doStuff(event) {
     var canvas = $('#mainCanvas')[0];
     var mousePoint = getMousePos(canvas, event);
 
@@ -111,13 +116,14 @@ function getMousePos(canvas, event) {
 
 
 function startSmallCircle() {
-    setInterval(smallCircle, 50);
+    setInterval(smallCircle, 100);
 }
 
 
 function smallCircle() {
     var canvas = document.getElementById('mainCanvas');
     var ctx = canvas.getContext("2d");
+    var divTest = document.getElementById('divTest');
 
     if (wasSecondClick) {
         var xSPrev = xS;
@@ -128,10 +134,10 @@ function smallCircle() {
             yS = y1 + radius;
             smallCircleInitialized = true;
         }
-        else
-        // Find new location to move
+        else {
+            // Find new location to move
             for (var i = xS - smallCircleRadius - rangeForLook; i <= xS + smallCircleRadius + rangeForLook; i++) {
-                var newPointFound = false;
+                var newPointFound = false;  // For break 2 loops
                 for (var j = yS - smallCircleRadius - rangeForLook; j <= yS + smallCircleRadius + rangeForLook; j++) {
                     //alert(getPixelColor(i, j));
                     //var cl = getPixelColor(i, j);
@@ -139,9 +145,6 @@ function smallCircle() {
 
                     var clr = getPixelRGBA(i, j);
                     if (clr.R < 255 && clr.G == 0 && clr.B == 0 && clr.A != 0) {
-                        //if (getPixelColor(i, j) == 'black') {
-                        //if (cl == 'black') {
-                        //alert(i + ", " + j);
                         xS = i;
                         yS = j;
                         newPointFound = true;
@@ -152,12 +155,44 @@ function smallCircle() {
                     break;
             }
 
+            if (xS == xSPrev && yS == ySPrev) {
+                //alert("I lost");
+
+                var distances = [];
+                for (h in points)
+                    distances.push(Math.pow(points[h].X - xS, 2) + Math.pow(points[h].Y - yS, 2));
+
+                var imin = 0;
+                for (var h = 1; h < distances.length; h++)
+                    if (distances[h] < distances[imin])
+                        imin = h;
+
+                xS = points[imin].X;
+                yS = points[imin].Y;
+                //alert("Go to " + xS + ", " + yS);
+
+                //for (var r = smallCircleRadius + rangeForLook + 1; r < rangeForRelocate; r++) {
+                //    var frameFound = false;
+                    //for (var t = 0; t < 2 * Math.PI * r; t++) {
+                    //    var currX = r * Math.cos(t);
+                    //    var currY = r * Math.sin(t);
+                    //    var color = getPixelRGBA(currX, currY);
+                    //    if (color.R < 255 && color.G == 0 && color.B == 0 && color.A != 0) {
+                    //        xS = currX;
+                    //        yS = currY;
+                    //        alert("Go to " + xS + ", " + yS);
+                    //        frameFound = true;
+                    //        break;
+                    //    }
+                    //}
+                //    if (frameFound)
+                //        break;
+                //}
+            }
+        }
+
         clearCanvas();
         drawFrame();
-        //ctx.beginPath();
-        ////ctx.clearRect(0, 0, canvas.width, canvas.height);
-        //ctx.arc(x1, y1, radius, 0, 2 * Math.PI);
-        //ctx.stroke();
 
         ctx.beginPath();
         ctx.arc(xSPrev, ySPrev, smallCircleRadius, 0, 2 * Math.PI);
@@ -167,7 +202,6 @@ function smallCircle() {
         ctx.arc(xS, yS, smallCircleRadius, 0, 2 * Math.PI);
         ctx.fillStyle = smallCircleColor;
         ctx.fill();
-        //ctx.stroke();
     }
 }
 
@@ -207,10 +241,40 @@ function drawFrame() {
     var ctx = canvas.getContext("2d");
     ctx.beginPath();
 
-    ctx.moveTo(points[0].X, points[0].Y);
-    for (var i = 1; i < points.length; i++)
-        ctx.lineTo(points[i].X, points[i].Y);
-    ctx.lineTo(points[0].X, points[0].Y);
+    //ctx.moveTo(points[0].X, points[0].Y);
+    //for (var i = 1; i < points.length; i++)
+    //    ctx.lineTo(points[i].X, points[i].Y);
+    //ctx.lineTo(points[0].X, points[0].Y);
+
+    for (var i = 0; i < points.length; i++) {
+        //alert("i = " + i +
+        //    "\ni + 1 = " + (i + 1) % points.length +
+        //    "\ni + 2 = " + ((i + 1) % points.length + 1) % points.length);
+
+        var x0 = points[i].X;
+        var y0 = points[i].Y;
+        var x1 = points[(i + 1) % points.length].X;
+        var y1 = points[(i + 1) % points.length].Y;
+        var x2 = points[((i + 1) % points.length + 1) % points.length].X;
+        var y2 = points[((i + 1) % points.length + 1) % points.length].Y;
+
+        var dx1 = x1 - x0;
+        var dy1 = y1 - y0;
+        var dx2 = x2 - x1;
+        var dy2 = y2 - y1;
+
+        ctx.moveTo(x0 + dx1 * offsetBezier, y0 + dy1 * offsetBezier);
+        ctx.lineTo(x1 - dx1 * offsetBezier, y1 - dy1 * offsetBezier);
+        ctx.bezierCurveTo(x1, y1, x1, y1, x1 + dx2 * offsetBezier, y1 + dy2 * offsetBezier);
+        //ctx.lineTo(x1 + dx2 * offsetBezier, y1 + dy2 * offsetBezier);
+    }
+
 
     ctx.stroke();
+}
+
+
+// Checks is specified color a frame color
+function isFrameColor(color) {
+    return color.R < 255 && color.G == 0 && color.B == 0 && color.A != 0;
 }
