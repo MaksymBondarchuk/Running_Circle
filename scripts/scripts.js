@@ -22,20 +22,23 @@ var smallCircleInitialized = false;
 var rangeForLook = 1;
 //var rangeForRelocate = 100;
 
-var offsetBezier = 0.3;
+var offsetBezier = 0.1;
 
 
+// Click handler
 function drawSimpleCircle(event) {
     var canvas = $('#mainCanvas')[0];
     //var ctx = canvas.getContext("2d");
     var mousePoint = getMousePos(canvas, event);
 
     if (!wasFirstClick) {
+        // Fix center
         x1 = mousePoint.X;
         y1 = mousePoint.Y;
         wasFirstClick = true;
     }
     else if (!wasSecondClick) {
+        // Get circle
         x2 = mousePoint.X;
         y2 = mousePoint.Y;
 
@@ -44,6 +47,7 @@ function drawSimpleCircle(event) {
         //ctx.arc(x1, y1, radius, 0, 2 * Math.PI);
         //ctx.stroke();
 
+        // Save it as points of a square
         points.push({X: x1 - radius, Y: y1 - radius});  // p0
         points.push({X: x1 + radius, Y: y1 - radius});  // p1
         points.push({X: x1 + radius, Y: y1 + radius});  // p2
@@ -54,6 +58,7 @@ function drawSimpleCircle(event) {
         wasSecondClick = true;
     }
     else {
+        // Just add new point
         var distances = [];
         for (i in points)
             distances.push(Math.sqrt(Math.pow(points[i].X - mousePoint.X, 2) + Math.pow(points[i].Y - mousePoint.Y, 2)))
@@ -192,8 +197,8 @@ function smallCircle() {
         }
 
         clearCanvas();
-        drawFrame();
         drawPoints();
+        drawFrame();
 
         ctx.beginPath();
         ctx.arc(xSPrev, ySPrev, smallCircleRadius, 0, 2 * Math.PI);
@@ -242,23 +247,23 @@ function drawFrame() {
     var ctx = canvas.getContext("2d");
     ctx.beginPath();
 
-    for (var i = 0; i < points.length; i++) {
-        var x0 = points[i].X;
-        var y0 = points[i].Y;
-        var x1 = points[(i + 1) % points.length].X;
-        var y1 = points[(i + 1) % points.length].Y;
-        var x2 = points[((i + 1) % points.length + 1) % points.length].X;
-        var y2 = points[((i + 1) % points.length + 1) % points.length].Y;
-
-        var dx1 = x1 - x0;
-        var dy1 = y1 - y0;
-        var dx2 = x2 - x1;
-        var dy2 = y2 - y1;
-
-        ctx.moveTo(x0 + dx1 * offsetBezier, y0 + dy1 * offsetBezier);
-        ctx.lineTo(x1 - dx1 * offsetBezier, y1 - dy1 * offsetBezier);
-        ctx.bezierCurveTo(x1, y1, x1, y1, x1 + dx2 * offsetBezier, y1 + dy2 * offsetBezier);
-    }
+    //for (var i = 0; i < points.length; i++) {
+    //    var x0 = points[i].X;
+    //    var y0 = points[i].Y;
+    //    var x1 = points[(i + 1) % points.length].X;
+    //    var y1 = points[(i + 1) % points.length].Y;
+    //    var x2 = points[((i + 1) % points.length + 1) % points.length].X;
+    //    var y2 = points[((i + 1) % points.length + 1) % points.length].Y;
+    //
+    //    var dx1 = x1 - x0;
+    //    var dy1 = y1 - y0;
+    //    var dx2 = x2 - x1;
+    //    var dy2 = y2 - y1;
+    //
+    //    ctx.moveTo(x0 + dx1 * offsetBezier, y0 + dy1 * offsetBezier);
+    //    ctx.lineTo(x1 - dx1 * offsetBezier, y1 - dy1 * offsetBezier);
+    //    ctx.bezierCurveTo(x1, y1, x1, y1, x1 + dx2 * offsetBezier, y1 + dy2 * offsetBezier);
+    //}
 
     //for (var i = 0; i < points.length; i += 2) {
     //    var x0 = points[i].X;
@@ -283,6 +288,43 @@ function drawFrame() {
     //        x2 - dx2 * offsetBezier, y2 - dy2 * offsetBezier);
     //    //ctx.lineTo(x3 + dx2 *offsetBezier, y3 + dy2 * offsetBezier);
     //}
+
+    var dxes = [];
+    for (var _i = 0; _i < points.length; _i++) {
+        var _x0 = points[_i != 0 ? _i - 1 : points.length - 1].X;
+        var _y0 = points[_i != 0 ? _i - 1 : points.length - 1].Y;
+        var _x1 = points[_i].X;
+        var _y1 = points[_i].Y;
+        var _x2 = points[(_i + 1) % points.length].X;
+        var _y2 = points[(_i + 1) % points.length].Y;
+
+        var r0 = Math.sqrt(Math.pow(_x1 - _x0, 2) + Math.pow(_y1 - _y0, 2));
+        var r2 = Math.sqrt(Math.pow(_x1 - _x2, 2) + Math.pow(_y1 - _y2, 2));
+        dxes.push({X: _x2 - _x0, Y: _y2 - _y0, R2: r2, R0: r0});
+    }
+
+    for (var i = 0; i < points.length; i++) {
+        var x0 = points[i != 0 ? i - 1 : points.length - 1].X;
+        var y0 = points[i != 0 ? i - 1 : points.length - 1].Y;
+        var x1 = points[i].X;
+        var y1 = points[i].Y;
+        var idxP1 = (i + 1) % points.length;    // index plus 1
+        var x2 = points[idxP1].X;
+        var y2 = points[idxP1].Y;
+
+        //alert("dx = " + dxes[i].X + ", dy = " + dxes[i].Y);
+
+        // Page 3
+        var offset0 = dxes[i].R0 / (dxes[i].R0 + dxes[i].R2);
+        var offset2 = dxes[i].R2 / (dxes[i].R0 + dxes[i].R2);
+        var offset20 = dxes[idxP1].R0 / (dxes[idxP1].R0 + dxes[idxP1].R2);
+
+        ctx.moveTo(x1 - dxes[i].X * offsetBezier * offset0, y1 - dxes[i].Y * offsetBezier * offset0);
+        ctx.lineTo(x1 + dxes[i].X * offsetBezier * offset2, y1 + dxes[i].Y * offsetBezier * offset2);
+        ctx.bezierCurveTo(x1 + dxes[i].X * .5 * offset2, y1 + dxes[i].Y * .5 * offset2,
+            x2 - dxes[idxP1].X * .5 * offset20, y2 - dxes[idxP1].Y * .5 * offset20,
+            x2 - dxes[idxP1].X * offsetBezier * offset20, y2 - dxes[idxP1].Y * offsetBezier * offset20);
+    }
 
     ctx.stroke();
 }
