@@ -20,7 +20,7 @@ var xS = 0;
 var yS = 0;
 var smallCircleInitialized = false;
 var rangeForLook = 1;
-var rangeForRelocate = 100;
+//var rangeForRelocate = 100;
 
 var offsetBezier = 0.3;
 
@@ -173,18 +173,18 @@ function smallCircle() {
 
                 //for (var r = smallCircleRadius + rangeForLook + 1; r < rangeForRelocate; r++) {
                 //    var frameFound = false;
-                    //for (var t = 0; t < 2 * Math.PI * r; t++) {
-                    //    var currX = r * Math.cos(t);
-                    //    var currY = r * Math.sin(t);
-                    //    var color = getPixelRGBA(currX, currY);
-                    //    if (color.R < 255 && color.G == 0 && color.B == 0 && color.A != 0) {
-                    //        xS = currX;
-                    //        yS = currY;
-                    //        alert("Go to " + xS + ", " + yS);
-                    //        frameFound = true;
-                    //        break;
-                    //    }
-                    //}
+                //for (var t = 0; t < 2 * Math.PI * r; t++) {
+                //    var currX = r * Math.cos(t);
+                //    var currY = r * Math.sin(t);
+                //    var color = getPixelRGBA(currX, currY);
+                //    if (color.R < 255 && color.G == 0 && color.B == 0 && color.A != 0) {
+                //        xS = currX;
+                //        yS = currY;
+                //        alert("Go to " + xS + ", " + yS);
+                //        frameFound = true;
+                //        break;
+                //    }
+                //}
                 //    if (frameFound)
                 //        break;
                 //}
@@ -193,6 +193,7 @@ function smallCircle() {
 
         clearCanvas();
         drawFrame();
+        drawPoints();
 
         ctx.beginPath();
         ctx.arc(xSPrev, ySPrev, smallCircleRadius, 0, 2 * Math.PI);
@@ -241,16 +242,7 @@ function drawFrame() {
     var ctx = canvas.getContext("2d");
     ctx.beginPath();
 
-    //ctx.moveTo(points[0].X, points[0].Y);
-    //for (var i = 1; i < points.length; i++)
-    //    ctx.lineTo(points[i].X, points[i].Y);
-    //ctx.lineTo(points[0].X, points[0].Y);
-
     for (var i = 0; i < points.length; i++) {
-        //alert("i = " + i +
-        //    "\ni + 1 = " + (i + 1) % points.length +
-        //    "\ni + 2 = " + ((i + 1) % points.length + 1) % points.length);
-
         var x0 = points[i].X;
         var y0 = points[i].Y;
         var x1 = points[(i + 1) % points.length].X;
@@ -266,15 +258,49 @@ function drawFrame() {
         ctx.moveTo(x0 + dx1 * offsetBezier, y0 + dy1 * offsetBezier);
         ctx.lineTo(x1 - dx1 * offsetBezier, y1 - dy1 * offsetBezier);
         ctx.bezierCurveTo(x1, y1, x1, y1, x1 + dx2 * offsetBezier, y1 + dy2 * offsetBezier);
-        //ctx.lineTo(x1 + dx2 * offsetBezier, y1 + dy2 * offsetBezier);
     }
 
+    //for (var i = 0; i < points.length; i += 2) {
+    //    var x0 = points[i].X;
+    //    var y0 = points[i].Y;
+    //    var x1 = points[(i + 1) % points.length].X;
+    //    var y1 = points[(i + 1) % points.length].Y;
+    //    var x2 = points[((i + 1) % points.length + 1) % points.length].X;
+    //    var y2 = points[((i + 1) % points.length + 1) % points.length].Y;
+    //    var x3 = points[((i + 1) % points.length + 2) % points.length].X;
+    //    var y3 = points[((i + 1) % points.length + 2) % points.length].Y;
+    //
+    //    var dx1 = x1 - x0;
+    //    var dy1 = y1 - y0;
+    //    var dx2 = x3 - x2;
+    //    var dy2 = y3 - y2;
+    //
+    //    ctx.moveTo(x0 - dx1 * offsetBezier, y0 - dy1 * offsetBezier);
+    //    ctx.lineTo(x1 + dx1 * offsetBezier, y1 + dy1 * offsetBezier);
+    //    //ctx.lineTo(x1 - dx1 * offsetBezier, y1 - dy1 * offsetBezier);
+    //    ctx.bezierCurveTo(x1 + dx1 * .5, y1 + dy1 * .5,
+    //        x2 - dx2 * .5, y2 - dy2 * .5,
+    //        x2 - dx2 * offsetBezier, y2 - dy2 * offsetBezier);
+    //    //ctx.lineTo(x3 + dx2 *offsetBezier, y3 + dy2 * offsetBezier);
+    //}
 
     ctx.stroke();
 }
 
 
-// Checks is specified color a frame color
-function isFrameColor(color) {
-    return color.R < 255 && color.G == 0 && color.B == 0 && color.A != 0;
+function drawPoints() {
+    var canvas = document.getElementById('mainCanvas');
+    var ctx = canvas.getContext("2d");
+
+    for (var i in points) {
+        ctx.beginPath();
+        ctx.arc(points[i].X, points[i].Y, smallCircleRadius * .5, 0, 2 * Math.PI);
+        ctx.fillStyle = 'grey';
+        ctx.fill();
+    }
 }
+
+//// Checks is specified color a frame color
+//function isFrameColor(color) {
+//    return color.R < 255 && color.G == 0 && color.B == 0 && color.A != 0;
+//}
