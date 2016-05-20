@@ -32,7 +32,6 @@ var offsetBezier = 0.1;
 //}
 
 
-
 // Click handler
 function drawSimpleCircle(event) {
     var canvas = $('#mainCanvas')[0];
@@ -69,7 +68,7 @@ function drawSimpleCircle(event) {
         // Just add new point
         var distances = [];
         for (i in points)
-            distances.push(Math.sqrt(Math.pow(points[i].X - mousePoint.X, 2) + Math.pow(points[i].Y - mousePoint.Y, 2)));
+            distances.push(Math.pow(points[i].X - mousePoint.X, 2) + Math.pow(points[i].Y - mousePoint.Y, 2));
 
         var imin = 0;
         for (var i = 1; i < distances.length; i++)
@@ -93,6 +92,35 @@ function drawSimpleCircle(event) {
             points.splice(imin, 0, newPoint);
         else
             points.splice(imin + 1, 0, newPoint);
+
+        //var wasReorder;
+        //do {
+        //    wasReorder = false;
+        //    for (var p = 0; p < points.length; p++) {
+        //        distances = [];
+        //        for (var pi = 0; pi < points.length; pi++)
+        //            distances.push(Math.pow(points[pi].X - points[p].X, 2) + Math.pow(points[pi].Y - points[p].Y, 2));
+        //
+        //        for (var j = 0; j < points.length; j++)
+        //            if (j != p && j != p - 1 && j != p + 1 &&
+        //                (distances[j] < distances[p - 1] || distances[j] < distances[p + 1])) {
+        //                var pnt = points[p];
+        //                points.splice(p, 1);
+        //                if (distances[j - 1] < distances[j + 1])
+        //                    points.splice(j, 0, pnt);
+        //                else
+        //                    points.splice(j + 1, 0, pnt);
+        //                wasReorder = true;
+        //                break;
+        //            }
+        //
+        //        if (wasReorder)
+        //            break;
+        //    }
+        //
+        //} while (wasReorder);
+
+
     }
 
 }
